@@ -60,13 +60,13 @@ app.post('/summarize', (req, res) => {
             scrapy.scrape(url, selector, function(err, data) {
                     if (err) return console.error(err)
                     if(data != null){
-                        // for(var i = 0 ; i < data.length ; i++){
-                        //     if(i < 10){
-                        //         read_text = read_text + ' ' + data[i];
-                        //     }
+                        for(var i = 0 ; i < data.length ; i++){
+                            if(i < 10){
+                                read_text = read_text + ' ' + data[i];
+                            }
                                 
-                        // }
-                        read_text=data.toString();
+                        }
+                        // read_text=data.toString();
                         read_text = read_text.replace(/\[(.+?)\]/g, "");
                         
                         // console.log(data.length);
