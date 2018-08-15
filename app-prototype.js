@@ -139,6 +139,7 @@ app.post('/summarize', (req, res) => {
                     }
                     else {
                         res.render('notfound');
+                        console.log('error');
                     }
                     
                 
