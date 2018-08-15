@@ -90,7 +90,7 @@ app.post('/summarize', (req, res) => {
                             text.replace('\n', '');
                             // console.log(text);
                             var fileName = title + '-' + Date.now() +'.mp3';
-                            const outputFile = process.argv[3] || __dirname + '\\public\\' + fileName;
+                            const outputFile = process.argv[3] || path.join(__dirname,'/public/') + fileName;
                             // const options = {
                             //     // url: `http://localhost:59125/process?INPUT_TEXT=${text}!&INPUT_TYPE=TEXT&OUTPUT_TYPE=AUDIO&AUDIO=WAVE_FILE&LOCALE=en_US&VOICE=cmu-slt-hsmm`,
                             //     url: 'http://api.voicerss.org/?key=f0a9e4e47788422299142c66046d0540&hl=en-us&src=' + text,
