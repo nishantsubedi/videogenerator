@@ -37,7 +37,7 @@ app.post('/summarize', (req, res) => {
     google(title, function (err, response){
         if (err) {
            console.error(err);
-           res.render('notfound');
+           res.render('notfound', {error: 'google failed'});
         }
         else{
             // console.log(response.links);
@@ -58,7 +58,7 @@ app.post('/summarize', (req, res) => {
             var read_text =  '';
        
             scrapy.scrape(url, selector, function(err, data) {
-                if (err) return console.error(err)
+                    if (err) return console.error(err)
                     if(data != null){
                         // for(var i = 0 ; i < data.length ; i++){
                         //     if(i < 10){
@@ -138,7 +138,7 @@ app.post('/summarize', (req, res) => {
                           });    
                     }
                     else {
-                        res.render('notfound');
+                        res.render('notfound',{error: 'scrapy failed'});
                         console.log('error');
                     }
                     
