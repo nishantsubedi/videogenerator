@@ -37,7 +37,7 @@ app.post('/summarize', (req, res) => {
     google(title, function (err, response){
         if (err) {
            console.error(err);
-           res.render('not-found');
+           res.render('notfound');
         }
         else{
             // console.log(response.links);
