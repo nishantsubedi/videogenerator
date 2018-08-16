@@ -12,7 +12,7 @@ var stringSimilarity = require('string-similarity');
 var request = require('request');
 
 
-google.resultsPerPage = 5;
+google.resultsPerPage = 10;
 
 const app = express();
 
@@ -36,24 +36,24 @@ app.post('/summarize', (req, res) => {
    
     var title = req.body.title;
    if(title.length<2){
-        res.render('notfound', { error: 'Query too short'});
+        return res.render('notfound', { error: 'Query too short'});
    }
    console.log('title: ', title);
     google(title, function (err, response){
         if (err) {
            console.error(err);
-           res.render('notfound', {error: 'SEARCH FAILED OR NETWORK ERROR'});
+           return res.render('notfound', {error: 'SEARCH FAILED OR NETWORK ERROR'});
         }
         if (response.links.length < 1) {
           
-            res.render('notfound', {error: 'NO RESULT FOUND'});
+            return res.render('notfound', {error: 'NO RESULT FOUND'});
          }
             // console.log(response.links);
             var url = null;
             var similarity = 0.0;
             for(var j=0; j<response.links.length; j++){
                 if(response.links[j].href != null && response.links[j].description != null){
-                    if(response.links[j].href.includes('wiki') && j<2){
+                    if(response.links[j].href.includes('wiki') && j<7){
                         url = response.links[j].href;
                         break;
                     }
@@ -78,7 +78,7 @@ app.post('/summarize', (req, res) => {
             }
             if(url == null){
                 console.log('no relevent url found');
-                res.render('notfound', {error: 'NO RELEVANT DOCUMENT FOUND'});
+                return res.render('notfound', {error: 'NO RELEVANT DOCUMENT FOUND'});
             }
             console.log('selected url with similirity ', similarity);
             console.log(url);
@@ -88,21 +88,21 @@ app.post('/summarize', (req, res) => {
             scrapy.scrape(url, selector, function(err, data) {
                     if (err){
                         console.error(err);
-                        res.render('notfound', {error: 'CANNOT FETCH DATA'});
+                        return res.render('notfound', {error: 'CANNOT FETCH DATA'});
                     }  
                 
                     if( data == null){
                         console.log('scrapy returned null data');
-                        res.render('notfound',{error: 'NO DATA RETRIEVED FROM WEB PAGE'});
+                        return res.render('notfound',{error: 'NO DATA RETRIEVED FROM WEB PAGE'});
                        
                     }
-                        // for(var i = 0 ; i < data.length ; i++){
-                        //     if(i < 10){
-                        //         read_text = read_text + ' ' + data[i];
-                        //     }
+                        for(var i = 0 ; i < data.length ; i++){
+                            if(read_text.length < 20000){
+                                read_text = read_text + ' ' + data[i];
+                            }
                                 
-                        // }
-                        read_text=data.toString();
+                        }
+                        // read_text=data.toString();
                         read_text = read_text.replace(/\[(.+?)\]/g, "");
                         
                         console.log('data cleaned');
@@ -118,12 +118,16 @@ app.post('/summarize', (req, res) => {
                           }, function callback(err, httpResponse, body) {
                             if (err) {
                                 console.error('summarization request failed:', err);
-                                res.render('notfound',{error: 'FAILED TO SUMMARIZE DATA'});
+                                return res.render('notfound',{error: 'FAILED TO SUMMARIZE DATA'});
                             }
                             var response = JSON.parse(body);
                             // console.log(response);
                             
                             const text = process.argv[2] || response.output;
+                            if( text == null){
+                                console.log('summarization failed');
+                                return res.render('notfound',{error: 'SUMMARIZATION RETURNED EMPTY TEXT'});
+                            }
                             text.replace('\n', '');
                             console.log('summarization completed, summarized to length ', text.length);
                             // console.log(text);
@@ -150,9 +154,13 @@ app.post('/summarize', (req, res) => {
                                 callback: function (error, content) {
                                     // response.end(error || content);
                                     // console.log(content);
+                                    if(error){
+                                        console.error('synthesize failed:', error);
+                                        return res.render('notfound',{error: 'FAILED TO SYNTHESIZE TEXT'});
+                                    }
                                     fs.writeFileSync(outputFile,  content);
                                     console.log('Audio File saved as ', fileName);
-                                    res.render('summary', {selector: fileName, title: title, text: text , content: content});
+                                    return res.render('summary', {selector: fileName, title: title, text: text , content: content});
 
                                 }
                             });

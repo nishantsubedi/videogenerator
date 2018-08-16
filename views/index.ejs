@@ -6,7 +6,7 @@
     <title>First</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" media="screen" href="/public/main.css" />
-    <script src="/public/main.js"></script>
+    <script src="/public/js/jquery.min.js"></script>
 
     <link rel="stylesheet" href="/public/css/bootstrap.min.css" />
     <link href="/public/css/all.css" rel="stylesheet" />
@@ -30,13 +30,13 @@
     <div class="break"></div>
 
     <div class="row">
-        <div class="col-lg-4"></div>
-        <div class="col-lg-4 name">
+        <div class="col-lg-3"></div>
+        <div class="col-lg-6 name">
             <div class="d-flex align-items-center justify-content-center">
                 VIDEO GENERATOR
             </div>
         </div>
-        <div class="col-lg-4"></div>
+        <div class="col-lg-3"></div>
     </div>
     
     <div class="break1"></div>
@@ -48,7 +48,7 @@
             <div class="d-flex align-items-center justify-content-center">
                 <form class="form-inline" action="/summarize" method="post">
                     <input class="form-control mr-sm-2" type="search" placeholder="Input Topic" name="title" aria-label="Search">
-                    <button class="btn btn-outline-light my-2 my-sm-0" type="submit">Generate</button>
+                    <button class="btn btn-outline-light my-2 my-sm-0" id="generate" >Generate</button>
                 </form>
             </div>           
         </div>
@@ -56,39 +56,14 @@
     </div>
     <!-- Topic Enter end -->
     
-    <div class="row">
-        <div class="col-lg-4 col-md-4"></div>
-         <div class="col-lg-4 col-md-4 name1">
-                <div class="d-flex align-items-center justify-content-center">
-                     Wait Processing......
-                </div>
-        </div>
-        <div class="col-lg-4 col-md-4"></div>
-    </div>
     
     <div class="break1"></div>
-
-    <!-- Progress Bar Start -->
-    <div class="row">
-        <div class="col-lg-4"></div>
-        <div class="col-lg-4">
-            
-                <div class="progress">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated  " role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%"></div>
-                </div>
-                  
-        </div>   
-        <div class="col-lg-4"></div>
-    </div>
-    <!-- Progress Bar End -->
     <div class="break1"></div>
-
-    <!-- Downlaod Start -->
-    <!-- <div class="row">
+    <div class="row">
         <div class="col-lg-4 col-md-4"></div>
          <div class="col-lg-4 col-md-4 name1">
                 <div class="d-flex align-items-center justify-content-center">
-                    Your Video is ready to Download.
+                        <div class="lds-dual-ring"></div>
                 </div>
         </div>
         <div class="col-lg-4 col-md-4"></div>
@@ -97,18 +72,53 @@
     <div class="break1"></div>
 
     <div class="row">
-        <div class="col-lg-4"></div>
-        <div class="col-lg-4">
-            <div class="d-flex align-items-center justify-content-center">
-                <form class="form-inline">
-                    <button class="btn btn-outline-light my-2 my-sm-0" type="submit">DOWNLOAD</button>
-                </form>
-            </div>           
+            <div class="col-lg-4 col-md-4"></div>
+             <div class="col-lg-4 col-md-4 name1">
+                    <div class="d-flex align-items-center justify-content-center" id="progresstext">
+                           
+                    </div>
+            </div>
+            <div class="col-lg-4 col-md-4"></div>
         </div>
-        <div class="col-lg-4"></div>
-    </div> -->
-    <!-- Downlaod Start -->
-    <!-- Main Body End -->
 </div>
+<script>
+$( document ).ready(function() {
+$('.lds-dual-ring').toggle();
+});
+
+$('#generate').click(function() {
+    $('.lds-dual-ring').toggle();
+    $("#generate").attr("disabled", "disabled");
+
+    $( "form" ).submit();
+   
+    setTimeout(function(){ 
+        $('#progresstext').text('searching the web');
+    }, 0);
+    setTimeout(function(){ 
+        $('#progresstext').text('fetching data');
+    }, 3000);
+    setTimeout(function(){ 
+        $('#progresstext').text('cleaning data');
+    }, 6000);
+    setTimeout(function(){ 
+        $('#progresstext').text('processing data');
+    }, 9000);
+    setTimeout(function(){ 
+        $('#progresstext').text('Synthesizing speech');
+    }, 12000);
+
+      setTimeout(function(){ 
+        $('#progresstext').text('finalizing');
+    }, 15000);
+
+
+
+
+});
+
+
+
+</script>
 </body>
 </html>
