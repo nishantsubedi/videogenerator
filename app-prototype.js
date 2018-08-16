@@ -8,11 +8,11 @@ var scrapy = require('node-scrapy');
 var google = require('google');
 const fs = require('fs');
 var tts = require('./voice-rss-tts/index.js');
-
+var stringSimilarity = require('string-similarity');
 var request = require('request');
 
 
-google.resultsPerPage = 10;
+google.resultsPerPage = 5;
 
 const app = express();
 
@@ -27,6 +27,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(bodyParser()); // pull information from html in POST
 app.use('/public',express.static(path.join(__dirname, 'public')));
+app.use('/output',express.static(path.join(__dirname, 'output')));
 
 app.get('/', (req, res) => {
     res.render('index');
@@ -34,42 +35,78 @@ app.get('/', (req, res) => {
 app.post('/summarize', (req, res) => {
    
     var title = req.body.title;
+   if(title.length<2){
+        res.render('notfound', { error: 'Query too short'});
+   }
+   console.log('title: ', title);
     google(title, function (err, response){
         if (err) {
            console.error(err);
-           res.render('notfound', {error: 'google failed'});
+           res.render('notfound', {error: 'SEARCH FAILED OR NETWORK ERROR'});
         }
-        else{
+        if (response.links.length < 1) {
+          
+            res.render('notfound', {error: 'NO RESULT FOUND'});
+         }
             // console.log(response.links);
             var url = null;
+            var similarity = 0.0;
             for(var j=0; j<response.links.length; j++){
-                if(response.links[j].href != null){
-                    if(response.links[j].href.includes('wiki')){
+                if(response.links[j].href != null && response.links[j].description != null){
+                    if(response.links[j].href.includes('wiki') && j<2){
                         url = response.links[j].href;
                         break;
                     }
-                    if(url == null)
+                    
+                   
+                    var smilarity_link = 2 * stringSimilarity.compareTwoStrings(title,response.links[j].href);
+                    var similarity_data = stringSimilarity.compareTwoStrings(title,response.links[j].description);
+                    
+                    var mean = (smilarity_link * similarity_data)/(j+1);
+                    console.log(response.links[j].href);
+                    console.log('similarity of description', similarity_data);
+                    console.log('similarity of link', smilarity_link);
+                    console.log('mean', mean);
+                    console.log('\n');
+                    if( mean > similarity){
+                        similarity = mean;
                         url = response.links[j].href;
+                    }
+                        
+                       
                 } 
             }
-
+            if(url == null){
+                console.log('no relevent url found');
+                res.render('notfound', {error: 'NO RELEVANT DOCUMENT FOUND'});
+            }
+            console.log('selected url with similirity ', similarity);
             console.log(url);
             var selector = 'p';
             var read_text =  '';
        
             scrapy.scrape(url, selector, function(err, data) {
-                    if (err) return console.error(err)
-                    if(data != null){
-                        for(var i = 0 ; i < data.length ; i++){
-                            if(i < 10){
-                                read_text = read_text + ' ' + data[i];
-                            }
+                    if (err){
+                        console.error(err);
+                        res.render('notfound', {error: 'CANNOT FETCH DATA'});
+                    }  
+                
+                    if( data == null){
+                        console.log('scrapy returned null data');
+                        res.render('notfound',{error: 'NO DATA RETRIEVED FROM WEB PAGE'});
+                       
+                    }
+                        // for(var i = 0 ; i < data.length ; i++){
+                        //     if(i < 10){
+                        //         read_text = read_text + ' ' + data[i];
+                        //     }
                                 
-                        }
-                        // read_text=data.toString();
+                        // }
+                        read_text=data.toString();
                         read_text = read_text.replace(/\[(.+?)\]/g, "");
                         
-                        // console.log(data.length);
+                        console.log('data cleaned');
+                        console.log('summarizing data of length', read_text.length);
                         request.post({
                             url: 'https://api.deepai.org/api/summarization',
                             headers: {
@@ -80,17 +117,19 @@ app.post('/summarize', (req, res) => {
                             }
                           }, function callback(err, httpResponse, body) {
                             if (err) {
-                                console.error('request failed:', err);
-                                return;
+                                console.error('summarization request failed:', err);
+                                res.render('notfound',{error: 'FAILED TO SUMMARIZE DATA'});
                             }
                             var response = JSON.parse(body);
                             // console.log(response);
                             
                             const text = process.argv[2] || response.output;
                             text.replace('\n', '');
+                            console.log('summarization completed, summarized to length ', text.length);
                             // console.log(text);
+
                             var fileName = title + '-' + Date.now() +'.mp3';
-                            const outputFile = process.argv[3] || path.join(__dirname,'/public/') + fileName;
+                            const outputFile = process.argv[3] || path.join(__dirname,'/output/') + fileName;
                             // const options = {
                             //     // url: `http://localhost:59125/process?INPUT_TEXT=${text}!&INPUT_TYPE=TEXT&OUTPUT_TYPE=AUDIO&AUDIO=WAVE_FILE&LOCALE=en_US&VOICE=cmu-slt-hsmm`,
                             //     url: 'http://api.voicerss.org/?key=f0a9e4e47788422299142c66046d0540&hl=en-us&src=' + text,
@@ -110,43 +149,24 @@ app.post('/summarize', (req, res) => {
                                 b64: false,
                                 callback: function (error, content) {
                                     // response.end(error || content);
-                                    console.log(content);
+                                    // console.log(content);
                                     fs.writeFileSync(outputFile,  content);
-                                    console.log('File Save as ', fileName);
+                                    console.log('Audio File saved as ', fileName);
                                     res.render('summary', {selector: fileName, title: title, text: text , content: content});
 
                                 }
                             });
-                            // request.get(options, function (err, resp, data) {
-                            //     if (err || resp.statusCode != 200) {
-                            //         console.log(err);
-                            //     } else {
-                            //         try {
-                            //             console.log(`Saving output to file: ${outputFile}, length: ${data.length} byte(s)`);
-                            //             fs.writeFileSync(outputFile, data, { encoding: 'binary'});
-                            //             res.render('summary', {selector: fileName, title: title, text: text });
-                            //         } catch (e) {
-                            //             console.log(e.message);
-                            //         }
-                            //     }
-                            // });
-
-                            // res.render('summary', {selector: fileName, title: title, text: text });
+                           
 
                             
                             
                           });    
-                    }
-                    else {
-                        res.render('notfound',{error: 'scrapy failed'});
-                        console.log('error');
-                    }
-                    
+                   
                 
             });    
            
             
-        }
+        
         
        
            

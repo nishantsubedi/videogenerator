@@ -1,0 +1,38 @@
+.change-nav{
+    background-color: rgba(0,0,0,0.05);
+}
+.btn-outline-light{
+    border-color:white;
+    color: white; 
+}
+.break{
+    height: 4rem;
+}
+.break1{
+    height: 0.55rem;
+}
+.name{
+    color: white;
+    text-align: center;
+    font-size: 3.1rem;
+}
+
+.form-inline .form-control {
+    text-align: center;
+    
+    width: 14rem;
+    vertical-align: middle;
+}
+.name1{
+    color: white;
+    text-align: center;
+    font-size: 1rem;
+}
+.size{
+    width: 25rem;
+}
+
+
+
+
+
