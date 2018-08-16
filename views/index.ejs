@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>First</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" media="screen" href="/public/main.css" />
+    <!-- <link rel="stylesheet" type="text/css" media="screen" href="/public/main.css" /> -->
     <script src="/public/js/jquery.min.js"></script>
 
     <link rel="stylesheet" href="/public/css/bootstrap.min.css" />
@@ -32,7 +32,7 @@
     <div class="row">
         <div class="col-lg-3"></div>
         <div class="col-lg-6 name">
-            <div class="d-flex align-items-center justify-content-center">
+            <div class="d-flex align-items-center justify-content-center heading">
                 VIDEO GENERATOR
             </div>
         </div>
@@ -47,7 +47,7 @@
         <div class="col-lg-4">
             <div class="d-flex align-items-center justify-content-center">
                 <form class="form-inline" action="/summarize" method="post">
-                    <input class="form-control mr-sm-2" type="search" placeholder="Input Topic" name="title" aria-label="Search">
+                    <input class="form-control mr-sm-2" type="search" placeholder="Input Topic" name="title" id="title" aria-label="Search">
                     <button class="btn btn-outline-light my-2 my-sm-0" id="generate" >Generate</button>
                 </form>
             </div>           
@@ -64,6 +64,8 @@
          <div class="col-lg-4 col-md-4 name1">
                 <div class="d-flex align-items-center justify-content-center">
                         <div class="lds-dual-ring"></div>
+                        <a class="btn btn-outline-light my-2 my-sm-0 viewvideo" href="#">View Your Video</a>
+
                 </div>
         </div>
         <div class="col-lg-4 col-md-4"></div>
@@ -84,31 +86,81 @@
 <script>
 $( document ).ready(function() {
 $('.lds-dual-ring').toggle();
+$('.viewvideo').toggle();
 });
 
 $('#generate').click(function() {
+    
     $('.lds-dual-ring').toggle();
     $("#generate").attr("disabled", "disabled");
+    var progress = true;
+    // $( "form" ).submit();
+    var title = $("#title").val();
+    $.post("/summarize", //Required URL of the page on server
+    { // Data Sending With Request To Server
+    title:title
+    },
+    function(response,status){ // Required Callback Function
+        
+        if(response.error){
+            progress = false;
+            $('#progresstext').text(response.error);
+            $('.lds-dual-ring').toggle();
+            $('#generate').removeAttr("disabled")
 
-    $( "form" ).submit();
-   
+        } else {
+            console.log(response.id);
+            progress = false;
+            $('#progresstext').text('Your Audio is Ready');
+            $('.lds-dual-ring').toggle();
+            $('#generate').toggle();
+            $('#title').toggle();
+            $(".viewvideo").attr("href", "/summary/"+response.title+"/"+response.id);
+            $('.viewvideo').toggle();
+        }
+      
+       
+        // console.log(status);
+
+        // alert("*----Received Data----*nnResponse : " + response+"nnStatus : " + status);//"response" receives - whatever written in echo of above PHP script.
+    // $("#form")[0].reset();
+    })
+    .done(function() {
+        // alert( "second success" );
+    })
+    .fail(function() {
+        $('.lds-dual-ring').toggle();
+        $('#progresstext').text('Some Error occured, mske sure you are connected to the internet');
+        $('#generate').removeAttr("disabled")
+    })
+    .always(function() {
+        // alert( "finished" );
+    });
+
+
     setTimeout(function(){ 
+        if(progress)
         $('#progresstext').text('searching the web');
-    }, 0);
+    }, 100);
     setTimeout(function(){ 
+        if(progress)
         $('#progresstext').text('fetching data');
     }, 3000);
     setTimeout(function(){ 
+        if(progress)
         $('#progresstext').text('cleaning data');
     }, 6000);
     setTimeout(function(){ 
+        if(progress)
         $('#progresstext').text('processing data');
     }, 9000);
     setTimeout(function(){ 
+        if(progress)
         $('#progresstext').text('Synthesizing speech');
     }, 12000);
 
       setTimeout(function(){ 
+        if(progress)
         $('#progresstext').text('finalizing');
     }, 15000);
 
