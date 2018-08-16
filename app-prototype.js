@@ -32,6 +32,9 @@ app.use('/output',express.static(path.join(__dirname, 'output')));
 app.get('/', (req, res) => {
     res.render('index');
 });
+app.get('/meetcreators', (req, res) => {
+    res.render('meetcreators');
+});
 app.post('/summarize', (req, res) => {
    
     var title = req.body.title;
