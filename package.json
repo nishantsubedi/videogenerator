@@ -2,9 +2,9 @@
   "name": "video",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "api.js",
   "scripts": {
-    "start": "node app-prototype-api.js",
+    "start": "node api.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "nishant",
