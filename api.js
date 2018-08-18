@@ -87,7 +87,7 @@ app.post('/search', (req, res) => {
     google(title, function (err, response){
         if (err) {
            console.error(err);
-           return res.json({error: 'SEARCH FAILED OR NETWORK ERROR'});
+           return res.json({error: 'SEARCH FAILED OR NETWORK ERROR' });
         }
         if (response.links.length < 1) {
           
