@@ -138,7 +138,7 @@
         <div class="col-lg-4">
             <div class="d-flex align-items-center justify-content-center">
                 <form class="form-inline">
-                    <input class="form-control mr-sm-2" type="search" placeholder="Input Topic" name="title" id="title" aria-label="Search">
+                    <input class="form-control mr-sm-2" type="search" placeholder="Your Topic" name="title" id="title" aria-label="Search">
                     <button class="btn btn-outline-light my-2 my-sm-0" id="generate" >Generate</button>
                     
                 </form>
@@ -185,11 +185,32 @@
                             <div class="slides">
 
                             </div>
+                            <div class="videonav d-flex align-items-start justify-content-start">
+                                    <button class="btn btn-lg btn-outline-light my-2 my-sm-0" onclick="playpause()"><i id="buttonicon" class="fas fa-play"></i></button> 
+                                    <span style="padding-right:0.5rem;"></span>
+                                    <div class="timer">
+                                        <div class="timercontainer">
+                                                
+                                                <span>5466</span>
+                                        </div>
+                                       
+                                        <div class="slidecontainer">
+                                               
+                                                        <i class="fas fa-volume-down"></i>
+                                               
+                                                        <input type="range" min="0" max="100" value="50" class="slider" id="myRange">
+
+                                                
+                                                        <i class="fas fa-volume-up"></i>
+
+                                               
+
+                                            </div>
+                                               
+                                        </div>
+                                    </div>   
+                            </div>
                             
-                            <button class="btn btn-outline-light my-2 my-sm-0" onclick="playpause()"><i id="buttonicon" class="fas fa-play"></i></button> 
-                            <div class="timer">
-                                <span></span>
-                            </div>   
                         </div>
                     </div>
 
@@ -197,6 +218,7 @@
             </div>
             <div class="col-lg-4 col-md-4"></div>
     </div>
+    <br><br>
     
 </div>
 
@@ -205,6 +227,12 @@
 
 
 <script>
+$('#myRange').change(function(){
+    var x =$('#myRange').val();
+    var y = x / 100;
+
+    window.audio.volume = y;
+});
 $( document ).ready(function() {
 $('.lds-dual-ring').toggle();
 $('#video').toggle();
