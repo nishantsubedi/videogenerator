@@ -71,3 +71,13 @@
     color: #eee;
     font-size: 1rem;
 }
+
+.slides {
+    height: 24rem;
+    width:36rem;
+    background-color: #111;
+}
+.slides img{
+    height: 24rem;
+    width:auto;
+}

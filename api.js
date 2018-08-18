@@ -10,6 +10,9 @@ const fs = require('fs');
 var tts = require('./voice-rss-tts/index.js');
 var stringSimilarity = require('string-similarity');
 var request = require('request');
+const GoogleImages = require('google-images');
+ 
+const client = new GoogleImages('011728525526250593990:a5n18z-bcks', 'AIzaSyAfswuQvN01KtVaCDNO_7dfABzZHa3nbYs');
 
 
 google.resultsPerPage = 10;
@@ -38,13 +41,49 @@ app.get('/meetcreators', (req, res) => {
 app.get('/summary/:title/:id', (req, res) => {
     res.render('summary',{title: req.params.title, selector: req.params.id});
 });
-app.post('/summarize', (req, res) => {
+
+app.post('/testimage',(req, res)=>{
+    var title = req.body.title;
+    var imagesURL = [];
+    client.search(title)
+    .then(images => {
+        /*
+        [{
+            "url": "http://steveangello.com/boss.jpg",
+            "type": "image/jpeg",
+            "width": 1024,
+            "height": 768,
+            "size": 102451,
+            "thumbnail": {
+                "url": "http://steveangello.com/thumbnail.jpg",
+                "width": 512,
+                "height": 512
+            }
+        }]
+         */
+        for(var i = 0; i< images.length; i++){
+            if(images[i].width> 600 && images[i].height >400){
+                imagesURL.push(images[i].url);
+            }
+        }
+        // console.log(imagesURL);
+        if (imagesURL.length < 1) {
+            return res.json({error: 'NO IMAGE FOUND'});
+         }
+        return res.json({
+            url: imagesURL
+        });
+        // console.log(images);
+    })
+});
+
+app.post('/search', (req, res) => {
    
     var title = req.body.title;
-   if(title.length<2){
+    if(title.length<2){
         return res.json( {error: 'Query too short'});
-   }
-   console.log('title: ', title);
+    }
+    console.log('title: ', title);
     google(title, function (err, response){
         if (err) {
            console.error(err);
@@ -59,11 +98,10 @@ app.post('/summarize', (req, res) => {
             var similarity = 0.0;
             for(var j=0; j<response.links.length; j++){
                 if(response.links[j].href != null && response.links[j].description != null){
-                    if(response.links[j].href.includes('wiki') && j<7){
+                    if(response.links[j].href.includes('wiki') && j<10){
                         url = response.links[j].href;
                         break;
                     }
-                    
                    
                     var smilarity_link = 2 * stringSimilarity.compareTwoStrings(title,response.links[j].href);
                     var similarity_data = stringSimilarity.compareTwoStrings(title,response.links[j].description);
@@ -77,9 +115,7 @@ app.post('/summarize', (req, res) => {
                     if( mean > similarity){
                         similarity = mean;
                         url = response.links[j].href;
-                    }
-                        
-                       
+                    }                       
                 } 
             }
             if(url == null){
@@ -110,32 +146,49 @@ app.post('/summarize', (req, res) => {
                         }
                         // read_text=data.toString();
                         read_text = read_text.replace(/\[(.+?)\]/g, "");
-                        
                         console.log('data cleaned');
-                        console.log('summarizing data of length', read_text.length);
-                        request.post({
-                            url: 'https://api.deepai.org/api/summarization',
-                            headers: {
-                                'Api-Key': '1954524e-3b06-48a7-8ba2-08b1a2acd2f3'
-                            },
-                            formData: {
-                                'text': read_text,
-                            }
-                          }, function callback(err, httpResponse, body) {
-                            if (err) {
-                                console.error('summarization request failed:', err);
-                                return res.json({error: 'FAILED TO SUMMARIZE DATA'});
-                            }
-                            var response = JSON.parse(body);
-                            // console.log(response);
-                            
-                            const text = process.argv[2] || response.output;
-                            if( text == null){
-                                console.log('summarization failed');
-                                return res.json({error: 'SUMMARIZATION RETURNED EMPTY TEXT'});
-                            }
-                            text.replace('\n', '');
-                            console.log('summarization completed, summarized to length ', text.length);
+                        return res.json({
+                            title: title,
+                            text: read_text
+                        });
+            });    
+      });
+});
+
+app.post('/summarize', (req, res)=>{
+    var text = req.body.text;
+    var title = req.body.title;
+    console.log('summarizing data of length',text.length);
+    request.post({
+        url: 'https://api.deepai.org/api/summarization',
+        headers: {
+            'Api-Key': '1954524e-3b06-48a7-8ba2-08b1a2acd2f3'
+        },
+        formData: {
+            'text': text,
+        }
+      }, function callback(err, httpResponse, body) {
+        if (err) {
+            console.error('summarization request failed:', err);
+            return res.json({error: 'FAILED TO SUMMARIZE DATA'});
+        }
+        var response = JSON.parse(body);
+        // console.log(response);
+        
+        var summarized_text = process.argv[2] || response.output;
+        if( text == null){
+            console.log('summarization failed');
+            return res.json({error: 'SUMMARIZATION RETURNED EMPTY TEXT'});
+        }
+        text.replace('\n', '');
+        console.log('summarization completed, summarized to length ', summarized_text.length);
+        return res.json({
+            title: title,
+            summarized_text: summarized_text
+        });
+});
+app.get('/dd', (req, res) => {
+                       
                             // console.log(text);
 
                             var fileName = title + '-' + Date.now() +'.mp3';
@@ -179,28 +232,7 @@ app.post('/summarize', (req, res) => {
 
                             
                             
-                          });    
-                   
-                
-            });    
-           
-            
-        
-        
-       
-           
-     
-       
-            
-
-      
-      
-          
-      });
-
-    // console.log(read_text);  
-    // res.render('index', {selector: read_text});
+                          }); 
 });
-
 
 app.listen(process.env.PORT || 3000, () => console.log('Example app listening on port 3000!'));

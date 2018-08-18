@@ -3,15 +3,104 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>First</title>
+    <title>topic visualizer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="We can visualize any of your queries"/>
     <!-- <link rel="stylesheet" type="text/css" media="screen" href="/public/main.css" /> -->
     <script src="/public/js/jquery.min.js"></script>
+    <script src='/public/js/voicerss_tts_jquery/jquery.voicerss-tts.min.js'></script>
 
     <link rel="stylesheet" href="/public/css/bootstrap.min.css" />
     <link href="/public/css/all.css" rel="stylesheet" />
     <link href="/public/css/style.css" rel="stylesheet"/>
+   
+    <script>
+        var slide_state = 0;
+        var play_button_state = 'play';
+        var clock ={
+            hour: 0,
+            minute: 0,
+            second: 0
+        }
+        Number.prototype.pad = function(size) {
+            var s = String(this);
+            while (s.length < (size || 2)) {s = "0" + s;}
+            return s;
+        }
+        var clock_interval ;
+        var slide_interval;
+        function playpause(){
+           
 
+            var slide_fraction = window.audio.duration/window.images.length;
+            console.log('slide fraction ' , slide_fraction);
+
+            if(play_button_state == 'play'){
+                $('#buttonicon').attr('class', 'fas fa-pause');
+                play_button_state = 'pause';
+                 clock_interval = setInterval(function(){
+                    clock.second = clock.second + 1;
+                    if(clock.second == 60){
+                        clock.second = 0;
+                        clock.minute = clock.minute + 1;
+                    }
+                    if(clock.minute == 60){
+                        clock.second = 0;
+                        clock.minute = 0
+                        clock.hour = clock.hour + 1;
+                    }
+                    
+                    /*display clock */
+                    var sec_num = window.audio.duration; // don't forget the second param
+                    var hours   = Math.floor(sec_num / 3600);
+                    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+                    var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+                
+                
+
+                    if(hours == 0){
+                        $('.timer span').text(clock.minute + ':' +clock.second.pad() + ' / ' + minutes + ':' + Math.floor(seconds).pad());
+                    } else {
+                        $('.timer span').text(clock.hour+':'+clock.min + ':' +clock.second.pad() + ' / ' + hours+ ':' + minutes + ':' + Math.floor(seconds).pad());
+                    }
+                    
+                },1000);
+
+                if(clock.second>0){
+                    var rem_time = window.audio.duration - (clock.hour*3600 + clock.minute*60 + clock.second);
+                     slide_interval = setInterval(function(){  
+                    $('.slides img').attr("src", window.images[slide_state]);
+                        slide_state = slide_state + 1
+                    }, rem_time * 1000);
+                } else {
+                     slide_interval = setInterval(function(){  
+                    $('.slides img').attr("src", window.images[slide_state]);
+                        slide_state = slide_state + 1
+                    }, slide_fraction *1000);
+                }
+                
+
+                window.audio.play();
+
+
+            } else {
+                clearInterval(slide_interval);
+                clearInterval(clock_interval);
+                window.audio.pause();
+                play_button_state = 'play';
+                $('#buttonicon').attr('class', 'fas fa-play');
+            }
+           
+
+           
+            
+            
+
+            
+            
+        }
+    </script>
 
 </head>
 <body style="background-color:rgb(21, 71, 146);">
@@ -19,21 +108,23 @@
    <div class="container">
     <!-- NAVBAR STARTING -->
     <nav class="navbar navbar-expand-lg change-nav d-flex flex-row-reverse">
-            
+           
         <a class="btn btn-outline-light my-2 my-sm-0" href="/meetcreators">Meet the Creators</a>
         <span style="padding-right:1rem;"></span>
         <button class="btn btn-outline-light my-2 my-sm-0" type="submit">About</button>
+        <span style="padding-right:1rem;"></span>
+        <a class="btn btn-outline-light my-2 my-sm-0" href="/" >New</a>    
     </nav>
     <!-- NAVBAR END -->
     <!-- Main Body Start-->
-    <div class="break"></div>
-    <div class="break"></div>
+    <!-- <div class="break"></div> -->
+    <!-- <div class="break"></div> -->
 
     <div class="row">
         <div class="col-lg-3"></div>
         <div class="col-lg-6 name">
             <div class="d-flex align-items-center justify-content-center heading">
-                VIDEO GENERATOR
+                    VISUALIZE YOUR TOPIC
             </div>
         </div>
         <div class="col-lg-3"></div>
@@ -46,9 +137,10 @@
         <div class="col-lg-4"></div>
         <div class="col-lg-4">
             <div class="d-flex align-items-center justify-content-center">
-                <form class="form-inline" action="/summarize" method="post">
+                <form class="form-inline">
                     <input class="form-control mr-sm-2" type="search" placeholder="Input Topic" name="title" id="title" aria-label="Search">
                     <button class="btn btn-outline-light my-2 my-sm-0" id="generate" >Generate</button>
+                    
                 </form>
             </div>           
         </div>
@@ -64,7 +156,6 @@
          <div class="col-lg-4 col-md-4 name1">
                 <div class="d-flex align-items-center justify-content-center">
                         <div class="lds-dual-ring"></div>
-                        <a class="btn btn-outline-light my-2 my-sm-0 viewvideo" href="#">View Your Video</a>
 
                 </div>
         </div>
@@ -79,44 +170,143 @@
                     <div class="d-flex align-items-center justify-content-center" id="progresstext">
                            
                     </div>
+
+
             </div>
             <div class="col-lg-4 col-md-4"></div>
-        </div>
+    </div>
+    
+    <div class="row">
+            <div class="col-lg-4 col-md-4"></div>
+             <div class="col-lg-4 col-md-4 name1">
+                    <div class="d-flex align-items-center justify-content-center" >
+                        <div id="video">
+                               
+                            <div class="slides">
+
+                            </div>
+                            
+                            <button class="btn btn-outline-light my-2 my-sm-0" onclick="playpause()"><i id="buttonicon" class="fas fa-play"></i></button> 
+                            <div class="timer">
+                                <span></span>
+                            </div>   
+                        </div>
+                    </div>
+
+
+            </div>
+            <div class="col-lg-4 col-md-4"></div>
+    </div>
+    
 </div>
+
+
+
+
+
 <script>
 $( document ).ready(function() {
 $('.lds-dual-ring').toggle();
-$('.viewvideo').toggle();
+$('#video').toggle();
 });
-
+var times = 0;
 $('#generate').click(function() {
     
     $('.lds-dual-ring').toggle();
     $("#generate").attr("disabled", "disabled");
-    var progress = true;
-    // $( "form" ).submit();
     var title = $("#title").val();
-    $.post("/summarize", //Required URL of the page on server
+    console.log('searching');
+    $('#progresstext').text('searching the web');
+    $.post("/search", //Required URL of the page on server
     { // Data Sending With Request To Server
-    title:title
+        title:title
     },
     function(response,status){ // Required Callback Function
         
         if(response.error){
-            progress = false;
+            console.log(response.error);
             $('#progresstext').text(response.error);
             $('.lds-dual-ring').toggle();
-            $('#generate').removeAttr("disabled")
+            $('#generate').removeAttr("disabled");
 
         } else {
-            console.log(response.id);
-            progress = false;
-            $('#progresstext').text('Your Audio is Ready');
-            $('.lds-dual-ring').toggle();
-            $('#generate').toggle();
-            $('#title').toggle();
-            $(".viewvideo").attr("href", "/summary/"+response.title+"/"+response.id);
-            $('.viewvideo').toggle();
+            var text = response.text;
+            $('#progresstext').text('processing data');
+            console.log('summarizing data of length ', text.length);
+
+             $.post("/testimage", //Required URL of the page on server
+                { // Data Sending With Request To Server
+                    title:title
+                }, function(response,status){  
+                    // console.log(response);
+                    if(response.error){
+                        console.log(response.error);
+                        $('#progresstext').text(response.error);
+                        $('.lds-dual-ring').toggle();
+                        $('#generate').removeAttr("disabled");
+                    } else {
+                        window.images = response.url;
+                        $('.slides').append('<img src="'+ window.images[0] +'" alt="">');
+                        console.log('images url stored in window.images');
+                        $.post("/summarize", //Required URL of the page on server
+                        { // Data Sending With Request To Server
+                            title: title,
+                            text: text
+                        },
+                        function(response,status){  
+                            if(response.error){
+                                console.log(response.error);
+                                $('#progresstext').text(response.error);
+                                $('.lds-dual-ring').toggle();
+                                $('#generate').removeAttr("disabled")
+                            } else {
+                                $('#progresstext').text('Synthesizing speech');
+                                console.log('summarized to length ', response.summarized_text.length);
+                                console.log('synthesizing speech');
+                                $.speech({
+                                    key: 'f0a9e4e47788422299142c66046d0540',
+                                    src: response.summarized_text,
+                                    hl: 'en-us',
+                                    r: 0, 
+                                    c: 'mp3',
+                                    f: '44khz_16bit_stereo',
+                                    ssml: false
+                                });
+                            }
+                        })
+                        .done(function() {
+                
+                        })
+                        .fail(function() {
+                            console.log('summarization failed');
+                            $('.lds-dual-ring').toggle();
+                            $('#progresstext').text('Some Error occured, could not process your information');
+                            $('#generate').removeAttr("disabled");
+                        })
+                        .always(function() {
+                        
+                        });
+                    }
+                }).fail(function(){
+                    console.log('image search failed');
+                    $('.lds-dual-ring').toggle();
+                    $('#progresstext').text('Multimedia could not be fetched');
+                    $('#generate').removeAttr("disabled");
+                }); 
+
+
+
+
+
+
+
+
+
+
+
+            
+            // $('#generate').toggle();
+            
         }
       
        
@@ -126,7 +316,7 @@ $('#generate').click(function() {
     // $("#form")[0].reset();
     })
     .done(function() {
-        // alert( "second success" );
+       
     })
     .fail(function() {
         $('.lds-dual-ring').toggle();
@@ -134,35 +324,35 @@ $('#generate').click(function() {
         $('#generate').removeAttr("disabled")
     })
     .always(function() {
-        // alert( "finished" );
+       
     });
 
 
-    setTimeout(function(){ 
-        if(progress)
-        $('#progresstext').text('searching the web');
-    }, 100);
-    setTimeout(function(){ 
-        if(progress)
-        $('#progresstext').text('fetching data');
-    }, 3000);
-    setTimeout(function(){ 
-        if(progress)
-        $('#progresstext').text('cleaning data');
-    }, 6000);
-    setTimeout(function(){ 
-        if(progress)
-        $('#progresstext').text('processing data');
-    }, 9000);
-    setTimeout(function(){ 
-        if(progress)
-        $('#progresstext').text('Synthesizing speech');
-    }, 12000);
+    // setTimeout(function(){ 
+    //     if(progress)
+    //     $('#progresstext').text('searching the web');
+    // }, 100);
+    // setTimeout(function(){ 
+    //     if(progress)
+    //     $('#progresstext').text('fetching data');
+    // }, 3000);
+    // setTimeout(function(){ 
+    //     if(progress)
+    //     $('#progresstext').text('cleaning data');
+    // }, 6000);
+    // setTimeout(function(){ 
+    //     if(progress)
+    //     $('#progresstext').text('processing data');
+    // }, 9000);
+    // setTimeout(function(){ 
+    //     if(progress)
+    //     $('#progresstext').text('Synthesizing speech');
+    // }, 12000);
 
-      setTimeout(function(){ 
-        if(progress)
-        $('#progresstext').text('finalizing');
-    }, 15000);
+    //   setTimeout(function(){ 
+    //     if(progress)
+    //     $('#progresstext').text('finalizing');
+    // }, 15000);
 
 
 
