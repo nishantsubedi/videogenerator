@@ -27,6 +27,10 @@
             while (s.length < (size || 2)) {s = "0" + s;}
             return s;
         }
+        HTMLAudioElement.prototype.stop = function(){
+            this.pause();
+            this.currentTime = 0.0;
+        }
         var clock_interval ;
         var slide_interval;
         function playpause(){
@@ -57,22 +61,42 @@
                     var seconds = sec_num - (hours * 3600) - (minutes * 60);
 
                 
-                
-
-                    if(hours == 0){
-                        $('.timer span').text(clock.minute + ':' +clock.second.pad() + ' / ' + minutes + ':' + Math.floor(seconds).pad());
-                    } else {
-                        $('.timer span').text(clock.hour+':'+clock.min + ':' +clock.second.pad() + ' / ' + hours+ ':' + minutes + ':' + Math.floor(seconds).pad());
+                    if(clock.hour*3600 + clock.minute *60 + clock.second > window.audio.duration){
+                        window.audio.stop();
+                        play_button_state = 'play';
+                        clearInterval(slide_interval);
+                        clearInterval(clock_interval);
+                        clock = {
+                            hour: 0,
+                            minute: 0,
+                            second: 0
+                        };
+                        $('#buttonicon').attr('class', 'fas fa-play');
+                        slide_state = 0;
+                        
                     }
+                    
+                        if(hours == 0){
+                            $('.timer span').text(clock.minute + ':' +clock.second.pad() + ' / ' + minutes + ':' + Math.floor(seconds).pad());
+                        } else {
+                            $('.timer span').text(clock.hour+':'+clock.min + ':' +clock.second.pad() + ' / ' + hours+ ':' + minutes + ':' + Math.floor(seconds).pad());
+                        }
+                    
+
+                   
+
+
                     
                 },1000);
 
                 if(clock.second>0){
+
                     var rem_time = window.audio.duration - (clock.hour*3600 + clock.minute*60 + clock.second);
                      slide_interval = setInterval(function(){  
                     $('.slides img').attr("src", window.images[slide_state]);
                         slide_state = slide_state + 1
                     }, rem_time * 1000);
+
                 } else {
                      slide_interval = setInterval(function(){  
                     $('.slides img').attr("src", window.images[slide_state]);
@@ -243,6 +267,7 @@ $('#generate').click(function() {
     $('.lds-dual-ring').toggle();
     $("#generate").attr("disabled", "disabled");
     var title = $("#title").val();
+    window.title=title;
     console.log('searching');
     $('#progresstext').text('searching the web');
     $.post("/search", //Required URL of the page on server
